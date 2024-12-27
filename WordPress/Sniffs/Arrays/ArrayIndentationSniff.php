@@ -9,26 +9,25 @@
 
 namespace WordPressCS\WordPress\Sniffs\Arrays;
 
-use WordPressCS\WordPress\Sniff;
 use PHP_CodeSniffer\Util\Tokens;
 use PHPCSUtils\BackCompat\Helper;
+use PHPCSUtils\Tokens\Collections;
 use PHPCSUtils\Utils\Arrays;
 use PHPCSUtils\Utils\PassedParameters;
+use WordPressCS\WordPress\Sniff;
 
 /**
  * Enforces WordPress array indentation for multi-line arrays.
  *
- * @link    https://make.wordpress.org/core/handbook/best-practices/coding-standards/php/#indentation
+ * @link https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/#indentation
  *
- * @package WPCS\WordPressCodingStandards
- *
- * @since   0.12.0
- * @since   0.13.0 Class name changed: this class is now namespaced.
+ * @since 0.12.0
+ * @since 0.13.0 Class name changed: this class is now namespaced.
  *
  * {@internal This sniff should eventually be pulled upstream as part of a solution
  * for https://github.com/squizlabs/PHP_CodeSniffer/issues/582 }}
  */
-class ArrayIndentationSniff extends Sniff {
+final class ArrayIndentationSniff extends Sniff {
 
 	/**
 	 * Should tabs be used for indenting?
@@ -76,10 +75,7 @@ class ArrayIndentationSniff extends Sniff {
 		unset( $this->ignore_tokens[ \T_START_HEREDOC ], $this->ignore_tokens[ \T_START_NOWDOC ] );
 		$this->ignore_tokens[ \T_INLINE_HTML ] = \T_INLINE_HTML;
 
-		return array(
-			\T_ARRAY,
-			\T_OPEN_SHORT_ARRAY,
-		);
+		return Collections::arrayOpenTokensBC();
 	}
 
 	/**
@@ -95,7 +91,7 @@ class ArrayIndentationSniff extends Sniff {
 			$this->tab_width = Helper::getTabWidth( $this->phpcsFile );
 		}
 
-		if ( \T_OPEN_SHORT_ARRAY === $this->tokens[ $stackPtr ]['code']
+		if ( isset( Collections::shortArrayListOpenTokensBC()[ $this->tokens[ $stackPtr ]['code'] ] )
 			&& Arrays::isShortArray( $this->phpcsFile, $stackPtr ) === false
 		) {
 			// Short list, not short array.
@@ -247,7 +243,7 @@ class ArrayIndentationSniff extends Sniff {
 			 * Multi-line array items.
 			 *
 			 * Verify & if needed, correct the indentation of subsequent lines.
-			 * Subsequent lines may be indented more or less than the mimimum expected indent,
+			 * Subsequent lines may be indented more or less than the minimum expected indent,
 			 * but the "first line after" should be indented - at least - as much as the very first line
 			 * of the array item.
 			 * Indentation correction for subsequent lines will be based on that diff.
@@ -431,9 +427,7 @@ class ArrayIndentationSniff extends Sniff {
 		 * If it's a subsequent line of a multi-line sting, it will not start with a quote
 		 * character, nor just *be* a quote character.
 		 */
-		if ( \T_CONSTANT_ENCAPSED_STRING === $token_code
-			|| \T_DOUBLE_QUOTED_STRING === $token_code
-		) {
+		if ( isset( Tokens::$stringTokens[ $token_code ] ) === true ) {
 			// Deal with closing quote of a multi-line string being on its own line.
 			if ( "'" === $this->tokens[ $ptr ]['content']
 				|| '"' === $this->tokens[ $ptr ]['content']
@@ -527,6 +521,8 @@ class ArrayIndentationSniff extends Sniff {
 	 * @param int    $expected   Expected nr of spaces (tabs translated to space value).
 	 * @param int    $found      Found nr of spaces (tabs translated to space value).
 	 * @param string $new_indent Whitespace indent replacement content.
+	 *
+	 * @return void
 	 */
 	protected function add_array_alignment_error( $ptr, $error, $error_code, $expected, $found, $new_indent ) {
 
@@ -541,6 +537,8 @@ class ArrayIndentationSniff extends Sniff {
 	 *
 	 * @param int    $ptr        Stack pointer to the first content on the line.
 	 * @param string $new_indent Whitespace indent replacement content.
+	 *
+	 * @return void
 	 */
 	protected function fix_alignment_error( $ptr, $new_indent ) {
 		if ( 1 === $this->tokens[ $ptr ]['column'] ) {
@@ -549,5 +547,4 @@ class ArrayIndentationSniff extends Sniff {
 			$this->phpcsFile->fixer->replaceToken( ( $ptr - 1 ), $new_indent );
 		}
 	}
-
 }

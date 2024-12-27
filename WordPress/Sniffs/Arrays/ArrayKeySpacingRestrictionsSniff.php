@@ -15,17 +15,15 @@ use WordPressCS\WordPress\Sniff;
 /**
  * Check for proper spacing in array key references.
  *
- * @link    https://make.wordpress.org/core/handbook/best-practices/coding-standards/php/#space-usage
+ * @link https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/#space-usage
  *
- * @package WPCS\WordPressCodingStandards
- *
- * @since   0.3.0
- * @since   0.7.0  This sniff now has the ability to fix a number of the issues it flags.
- * @since   0.12.0 This class now extends the WordPressCS native `Sniff` class.
- * @since   0.13.0 Class name changed: this class is now namespaced.
- * @since   2.2.0  The sniff now also checks the size of the spacing, if applicable.
+ * @since 0.3.0
+ * @since 0.7.0  This sniff now has the ability to fix a number of the issues it flags.
+ * @since 0.12.0 This class now extends the WordPressCS native `Sniff` class.
+ * @since 0.13.0 Class name changed: this class is now namespaced.
+ * @since 2.2.0  The sniff now also checks the size of the spacing, if applicable.
  */
-class ArrayKeySpacingRestrictionsSniff extends Sniff {
+final class ArrayKeySpacingRestrictionsSniff extends Sniff {
 
 	/**
 	 * Returns an array of tokens this test wants to listen for.
@@ -99,6 +97,8 @@ class ArrayKeySpacingRestrictionsSniff extends Sniff {
 			$error = 'Array keys must be surrounded by spaces unless they contain a string or an integer.';
 			$fix   = $this->phpcsFile->addFixableError( $error, $stackPtr, 'NoSpacesAroundArrayKeys' );
 			if ( true === $fix ) {
+				$this->phpcsFile->fixer->beginChangeset();
+
 				if ( false === $has_space_after_opener ) {
 					$this->phpcsFile->fixer->addContent( $stackPtr, ' ' );
 				}
@@ -106,6 +106,8 @@ class ArrayKeySpacingRestrictionsSniff extends Sniff {
 				if ( false === $has_space_before_close ) {
 					$this->phpcsFile->fixer->addContentBefore( $token['bracket_closer'], ' ' );
 				}
+
+				$this->phpcsFile->fixer->endChangeset();
 			}
 		} elseif ( false === $needs_spaces && ( $has_space_after_opener || $has_space_before_close ) ) {
 			$error = 'Array keys must NOT be surrounded by spaces if they only contain a string or an integer.';
@@ -169,5 +171,4 @@ class ArrayKeySpacingRestrictionsSniff extends Sniff {
 			}
 		}
 	}
-
 }

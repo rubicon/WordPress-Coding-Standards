@@ -14,18 +14,20 @@ use PHP_CodeSniffer\Tests\Standards\AbstractSniffUnitTest;
 /**
  * Unit test class for the ValidHookName sniff.
  *
- * @package WPCS\WordPressCodingStandards
+ * @since 0.10.0
+ * @since 0.13.0 Class name changed: this class is now namespaced.
  *
- * @since   0.10.0
- * @since   0.13.0 Class name changed: this class is now namespaced.
+ * @covers \WordPressCS\WordPress\Helpers\WPHookHelper
+ * @covers \WordPressCS\WordPress\Sniffs\NamingConventions\ValidHookNameSniff
  */
-class ValidHookNameUnitTest extends AbstractSniffUnitTest {
+final class ValidHookNameUnitTest extends AbstractSniffUnitTest {
 
 	/**
 	 * Returns the lines where errors should occur.
 	 *
 	 * @param string $testFile The name of the file being tested.
-	 * @return array <int line number> => <int number of errors>
+	 *
+	 * @return array<int, int> Key is the line number, value is the number of expected errors.
 	 */
 	public function getErrorList( $testFile = 'ValidHookNameUnitTest.1.inc' ) {
 
@@ -70,6 +72,9 @@ class ValidHookNameUnitTest extends AbstractSniffUnitTest {
 					81  => 1,
 					89  => 1,
 					107 => 1,
+					114 => 1,
+					115 => 1,
+					123 => 1,
 				);
 
 			case 'ValidHookNameUnitTest.2.inc':
@@ -83,7 +88,8 @@ class ValidHookNameUnitTest extends AbstractSniffUnitTest {
 	 * Returns the lines where warnings should occur.
 	 *
 	 * @param string $testFile The name of the file being tested.
-	 * @return array <int line number> => <int number of warnings>
+	 *
+	 * @return array<int, int> Key is the line number, value is the number of expected warnings.
 	 */
 	public function getWarningList( $testFile = 'ValidHookNameUnitTest.1.inc' ) {
 
@@ -99,6 +105,8 @@ class ValidHookNameUnitTest extends AbstractSniffUnitTest {
 					77  => 1,
 					95  => 1,
 					107 => 1,
+					115 => 1,
+					123 => 1,
 				);
 
 			case 'ValidHookNameUnitTest.2.inc':
@@ -114,5 +122,4 @@ class ValidHookNameUnitTest extends AbstractSniffUnitTest {
 				return array();
 		}
 	}
-
 }

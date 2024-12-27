@@ -16,7 +16,7 @@ if ( @&file_exists( $filename ) && @ /*comment*/ is_readable( $filename ) ) {
 	$file = @ \file( $filename );
 }
 
-$fp = @fopen('http://www.example.com', 'r', false);
+$fp = @fopen('https://www.example.com', 'r', false);
 @fpassthru($fp); // Bad.
 @fclose($fp); // Bad.
 
@@ -80,3 +80,7 @@ $decoded = @hex2bin( $data );
 // phpcs:set WordPress.PHP.NoSilencedErrors customAllowedFunctionsList[]
 
 // phpcs:set WordPress.PHP.NoSilencedErrors usePHPFunctionsList true
+
+// phpcs:set WordPress.PHP.NoSilencedErrors context_length 0
+echo @some_userland_function( $param ); // Bad.
+// phpcs:set WordPress.PHP.NoSilencedErrors context_length 6

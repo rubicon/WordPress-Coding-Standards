@@ -9,8 +9,11 @@
 
 namespace WordPressCS\WordPress\Sniffs\PHP;
 
-use WordPressCS\WordPress\Sniff;
 use PHP_CodeSniffer\Util\Tokens;
+use PHPCSUtils\BackCompat\BCFile;
+use PHPCSUtils\Utils\GetTokensAsString;
+use WordPressCS\WordPress\Helpers\RulesetPropertyHelper;
+use WordPressCS\WordPress\Sniff;
 
 /**
  * Discourage the use of the PHP error silencing operator.
@@ -19,11 +22,9 @@ use PHP_CodeSniffer\Util\Tokens;
  * of functions, as no amount of error checking can prevent
  * PHP from throwing errors when those functions are used.
  *
- * @package WPCS\WordPressCodingStandards
- *
- * @since   1.1.0
+ * @since 1.1.0
  */
-class NoSilencedErrorsSniff extends Sniff {
+final class NoSilencedErrorsSniff extends Sniff {
 
 	/**
 	 * Number of tokens to display in the error message to show
@@ -59,7 +60,7 @@ class NoSilencedErrorsSniff extends Sniff {
 	 * @since 1.1.0
 	 * @since 3.0.0 Renamed from `$custom_whitelist` to `$customAllowedFunctionsList`.
 	 *
-	 * @var array
+	 * @var string[]
 	 */
 	public $customAllowedFunctionsList = array();
 
@@ -80,7 +81,7 @@ class NoSilencedErrorsSniff extends Sniff {
 	 * @since 1.1.0
 	 * @since 3.0.0 Renamed from `$function_whitelist` to `$allowedFunctionsList`.
 	 *
-	 * @var array <string function name> => <bool true>
+	 * @var array<string, true> Key is function name, value irrelevant.
 	 */
 	protected $allowedFunctionsList = array(
 		// Directory extension.
@@ -153,7 +154,7 @@ class NoSilencedErrorsSniff extends Sniff {
 	 *
 	 * @since 1.1.0
 	 *
-	 * @var array
+	 * @var array<int|string, int|string>
 	 */
 	private $empty_tokens = array();
 
@@ -183,7 +184,7 @@ class NoSilencedErrorsSniff extends Sniff {
 	 */
 	public function process_token( $stackPtr ) {
 		// Handle the user-defined custom function list.
-		$this->customAllowedFunctionsList = $this->merge_custom_array( $this->customAllowedFunctionsList, array(), false );
+		$this->customAllowedFunctionsList = RulesetPropertyHelper::merge_custom_array( $this->customAllowedFunctionsList, array(), false );
 		$this->customAllowedFunctionsList = array_map( 'strtolower', $this->customAllowedFunctionsList );
 
 		/*
@@ -215,13 +216,12 @@ class NoSilencedErrorsSniff extends Sniff {
 		}
 
 		// Prepare the "Found" string to display.
-		$end_of_statement = $this->phpcsFile->findEndOfStatement( $stackPtr, \T_COMMA );
+		$end_of_statement = BCFile::findEndOfStatement( $this->phpcsFile, $stackPtr, \T_COMMA );
 		if ( ( $end_of_statement - $stackPtr ) < $context_length ) {
 			$context_length = ( $end_of_statement - $stackPtr );
 		}
-		$found = $this->phpcsFile->getTokensAsString( $stackPtr, $context_length );
-		$found = str_replace( array( "\t", "\n", "\r" ), ' ', $found ) . '...';
 
+		$found     = GetTokensAsString::compact( $this->phpcsFile, $stackPtr, ( $stackPtr + $context_length - 1 ), true ) . '...';
 		$error_msg = 'Silencing errors is strongly discouraged. Use proper error checking instead.';
 		$data      = array();
 		if ( $this->context_length > 0 ) {
@@ -242,5 +242,4 @@ class NoSilencedErrorsSniff extends Sniff {
 			$this->phpcsFile->recordMetric( $stackPtr, 'Error silencing', $found );
 		}
 	}
-
 }

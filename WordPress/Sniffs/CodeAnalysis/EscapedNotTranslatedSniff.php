@@ -9,20 +9,18 @@
 
 namespace WordPressCS\WordPress\Sniffs\CodeAnalysis;
 
-use WordPressCS\WordPress\AbstractFunctionParameterSniff;
 use PHP_CodeSniffer\Util\Tokens;
 use PHPCSUtils\Utils\GetTokensAsString;
+use WordPressCS\WordPress\AbstractFunctionParameterSniff;
 
 /**
  * Flag calls to escaping functions which look like they may have been intended
  * as calls to the "translate + escape" sister-function due to the presence of
  * more than one parameter.
  *
- * @package WPCS\WordPressCodingStandards
- *
- * @since   2.2.0
+ * @since 2.2.0
  */
-class EscapedNotTranslatedSniff extends AbstractFunctionParameterSniff {
+final class EscapedNotTranslatedSniff extends AbstractFunctionParameterSniff {
 
 	/**
 	 * The group name for this group of functions.
@@ -43,7 +41,7 @@ class EscapedNotTranslatedSniff extends AbstractFunctionParameterSniff {
 	 *
 	 * @since 2.2.0
 	 *
-	 * @var array <string function_name> => <string alternative function>
+	 * @var array<string, string> Key is the name of the function being matched, value the alternative to use.
 	 */
 	protected $target_functions = array(
 		'esc_html' => 'esc_html__',
@@ -57,7 +55,8 @@ class EscapedNotTranslatedSniff extends AbstractFunctionParameterSniff {
 	 *
 	 * @param int    $stackPtr        The position of the current token in the stack.
 	 * @param string $group_name      The name of the group which was matched.
-	 * @param string $matched_content The token content (function name) which was matched.
+	 * @param string $matched_content The token content (function name) which was matched
+	 *                                in lowercase.
 	 * @param array  $parameters      Array with information about the parameters.
 	 *
 	 * @return void
@@ -81,11 +80,10 @@ class EscapedNotTranslatedSniff extends AbstractFunctionParameterSniff {
 		);
 
 		$this->phpcsFile->addWarning(
-			'%s() expects only one parameter. Did you mean to use %s() ? Found: %s',
+			'%s() expects only a $text parameter. Did you mean to use %s() ? Found: %s',
 			$stackPtr,
 			'Found',
 			$data
 		);
 	}
-
 }

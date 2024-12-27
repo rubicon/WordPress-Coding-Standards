@@ -18,17 +18,13 @@ use WordPressCS\WordPress\Sniff;
 /**
  * Makes sure scripts and styles are enqueued and not explicitly echo'd.
  *
- * @link    https://vip.wordpress.com/documentation/vip-go/code-review-blockers-warnings-notices/#inline-resources
+ * @link https://vip.wordpress.com/documentation/vip-go/code-review-blockers-warnings-notices/#inline-resources
  *
- * @package WPCS\WordPressCodingStandards
- *
- * @since   0.3.0
- * @since   0.12.0 This class now extends the WordPressCS native `Sniff` class.
- * @since   0.13.0 Class name changed: this class is now namespaced.
- * @since   3.0.0  Added a check for a complete text string in the case where it
- *                 spans two lines.
+ * @since 0.3.0
+ * @since 0.12.0 This class now extends the WordPressCS native `Sniff` class.
+ * @since 0.13.0 Class name changed: this class is now namespaced.
  */
-class EnqueuedResourcesSniff extends Sniff {
+final class EnqueuedResourcesSniff extends Sniff {
 
 	/**
 	 * Returns an array of tokens this test wants to listen for.
@@ -36,7 +32,7 @@ class EnqueuedResourcesSniff extends Sniff {
 	 * @return array
 	 */
 	public function register() {
-		$targets   = Collections::$textStingStartTokens;
+		$targets   = Collections::textStringStartTokens();
 		$targets[] = \T_INLINE_HTML;
 
 		return $targets;
@@ -47,16 +43,19 @@ class EnqueuedResourcesSniff extends Sniff {
 	 *
 	 * @param int $stackPtr The position of the current token in the stack.
 	 *
-	 * @return void
+	 * @return int|void Integer stack pointer to skip forward or void to continue
+	 *                  normal file processing.
 	 */
 	public function process_token( $stackPtr ) {
 
+		$end_ptr = $stackPtr;
 		$content = $this->tokens[ $stackPtr ]['content'];
 		if ( \T_INLINE_HTML !== $this->tokens[ $stackPtr ]['code'] ) {
 			try {
+				$end_ptr = TextStrings::getEndOfCompleteTextString( $this->phpcsFile, $stackPtr );
 				$content = TextStrings::getCompleteTextString( $this->phpcsFile, $stackPtr );
 			} catch ( RuntimeException $e ) {
-				// Not the first token in a multi-line text string. Any issues will already have been reported.
+				// Parse error/live coding.
 				return;
 			}
 		}
@@ -64,7 +63,7 @@ class EnqueuedResourcesSniff extends Sniff {
 		if ( preg_match_all( '# rel=\\\\?[\'"]?stylesheet\\\\?[\'"]?#', $content, $matches, \PREG_OFFSET_CAPTURE ) > 0 ) {
 			foreach ( $matches[0] as $match ) {
 				$this->phpcsFile->addError(
-					'Stylesheets must be registered/enqueued via wp_enqueue_style',
+					'Stylesheets must be registered/enqueued via wp_enqueue_style()',
 					$this->find_token_in_multiline_string( $stackPtr, $content, $match[1] ),
 					'NonEnqueuedStylesheet'
 				);
@@ -74,12 +73,14 @@ class EnqueuedResourcesSniff extends Sniff {
 		if ( preg_match_all( '#<script[^>]*(?<=src=)#', $content, $matches, \PREG_OFFSET_CAPTURE ) > 0 ) {
 			foreach ( $matches[0] as $match ) {
 				$this->phpcsFile->addError(
-					'Scripts must be registered/enqueued via wp_enqueue_script',
+					'Scripts must be registered/enqueued via wp_enqueue_script()',
 					$this->find_token_in_multiline_string( $stackPtr, $content, $match[1] ),
 					'NonEnqueuedScript'
 				);
 			}
 		}
+
+		return ( $end_ptr + 1 );
 	}
 
 	/**
@@ -104,5 +105,4 @@ class EnqueuedResourcesSniff extends Sniff {
 
 		return ( $stackPtr + $newline_count );
 	}
-
 }
